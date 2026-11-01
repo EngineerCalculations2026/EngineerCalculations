@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مهندس محاسبات | دفترچه یادداشت</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f1f4f9;font-family:Arial,sans-serif;color:#17243b}
+header{background:#14233f;color:white;padding:25px 18px;text-align:center}
+header h2{margin:0;color:#e8bd65}
+header p{color:#d5dbea}
+main{max-width:650px;margin:25px auto;padding:15px}
+.card{background:white;padding:20px;border-radius:15px;box-shadow:0 4px 15px #00000010;margin-bottom:18px}
+select,input,textarea{width:100%;padding:13px;margin:8px 0;border:1px solid #d7deea;border-radius:9px;font-size:16px}
+textarea{height:120px;resize:vertical}
+button{border:0;border-radius:8px;padding:12px 17px;background:#142b4d;color:white;font-size:15px;cursor:pointer;margin:4px}
+button:hover{opacity:.85}
+.save{background:#b58b3d;color:white;width:100%;font-weight:bold}
+.note{border-right:4px solid #c49a4d;background:#f8f9fc;padding:13px;margin:12px 0;border-radius:8px}
+.note h3{margin:5px 0}
+.note p{white-space:pre-wrap;overflow-wrap:anywhere}
+.delete{background:#b83232}
+.edit{background:#42658c}
+#empty{text-align:center;color:#777;padding:20px}
+</style>
+</head>
+<body>
+
+<header>
+<h2>مهندس محاسبات</h2>
+<p id="subtitle">دفترچه یادداشت هوشمند</p>
+</header>
+
+<main>
+<div class="card">
+<label id="languageLabel">زبان برنامه</label>
+<select id="language">
+<option value="fa">دری</option>
+<option value="ps">پشتو</option>
+<option value="en">English</option>
+</select>
+</div>
+
+<div class="card">
+<h3 id="formTitle">یادداشت جدید</h3>
+<input id="title" placeholder="عنوان یادداشت">
+<textarea id="content" placeholder="متن یادداشت خود را بنویسید..."></textarea>
+<button class="save" id="saveBtn" onclick="saveNote()">ذخیره یادداشت</button>
+<button id="cancelBtn" onclick="clearForm()" style="display:none">لغو ویرایش</button>
+</div>
+
+<div class="card">
+<h3 id="listTitle">یادداشت‌های من</h3>
+<input id="search" placeholder="جستجو در یادداشت‌ها..." oninput="showNotes()">
+<div id="notes"></div>
+</div>
+</main>
+
+<script>
+const words={
+fa:{
+subtitle:"دفترچه یادداشت هوشمند",language:"زبان برنامه",
+new:"یادداشت جدید",title:"عنوان یادداشت",
+content:"متن یادداشت خود را بنویسید...",
+save:"ذخیره یادداشت",list:"یادداشت‌های من",
+search:"جستجو در یادداشت‌ها...",empty:"هنوز یادداشتی ندارید.",
+edit:"ویرایش",del:"حذف",cancel:"لغو ویرایش",
+required:"لطفاً عنوان و متن یادداشت را وارد کنید.",
+confirm:"این یادداشت حذف شود؟",updated:"ذخیره تغییرات"
+},
+ps:{
+subtitle:"هوښیار یادښت کتاب",language:"د پروګرام ژبه",
+new:"نوی یادښت",title:"د یادښت سرلیک",
+content:"خپل یادښت ولیکئ...",
+save:"یادښت خوندي کړئ",list:"زما یادښتونه",
+search:"په یادښتونو کې لټون...",empty:"تر اوسه یادښت نشته.",
+edit:"سمون",del:"ړنګول",cancel:"سمون لغوه کړئ",
+required:"مهرباني وکړئ سرلیک او متن ولیکئ.",
+confirm:"دا یادښت ړنګ شي؟",updated:"بدلونونه خوندي کړئ"
+},
+en:{
+subtitle:"Smart Notebook",language:"App language",
+new:"New Note",title:"Note title",
+content:"Write your note...",
+save:"Save Note",list:"My Notes",
+search:"Search notes...",empty:"No notes yet.",
+edit:"Edit",del:"Delete",cancel:"Cancel Edit",
+required:"Please enter a title and text.",
+confirm:"Delete this note?",updated:"Save Changes"
+}
+};
+
+let notes=JSON.parse(localStorage.getItem("engineerNotes")||"[]");
+let editing=null;
+let lang="fa";
+
+function applyLanguage(){
+lang=document.getElementById("language").value;
+let w=words[lang];
+document.documentElement.lang=lang;
+document.documentElement.dir=lang==="en"?"ltr":"rtl";
+document.getElementById("subtitle").textContent=w.subtitle;
+document.getElementById("languageLabel").textContent=w.language;
+document.getElementById("formTitle").textContent=w.new;
+document.getElementById("title").placeholder=w.title;
+document.getElementById("content").placeholder=w.content;
+document.getElementById("saveBtn").textContent=editing===null?w.save:w.updated;
+document.getElementById("listTitle").textContent=w.list;
+document.getElementById("search").placeholder=w.search;
+document.getElementById("cancelBtn").textContent=w.cancel;
+showNotes();
+}
+
+function saveNote(){
+let title=document.getElementById("title").value.trim();
+let content=document.getElementById("content").value.trim();
+if(!title||!content){alert(words[lang].required);return;}
+if(editing===null){
+notes.unshift({title,content});
+}else{
+notes[editing]={title,content};
+}
+localStorage.setItem("engineerNotes",JSON.stringify(notes));
+clearForm();
+showNotes();
+}
+
+function clearForm(){
+document.getElementById("title").value="";
